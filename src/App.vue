@@ -1,15 +1,10 @@
 <template>
-  <div v-if="$store.state.info" class="container">
+  <div v-if="info" class="container">
     <h1>Crypto Exchange</h1>
     <h3>Exchange fast and easy</h3>
     <div class="row">
       <ExchangeField ref="left" :isLeft="true" />
-      <img
-        src="./assets/swap.svg"
-        @click="swapTickers"
-        class="swap-img"
-        alt=""
-      />
+      <img src="./assets/swap.svg" @click="swap" class="swap-img" alt="" />
       <ExchangeField ref="right" :isLeft="false" />
     </div>
     <EtheriumAddress @submitForm="submitHandler" />
@@ -18,6 +13,7 @@
 </template>
 
 <script>
+import { mapState, mapActions, mapMutations } from "vuex";
 import EtheriumAddress from "./components/EtheriumAddress.vue";
 import ExchangeField from "./components/ExchangeField.vue";
 export default {
@@ -26,6 +22,8 @@ export default {
     return {};
   },
   methods: {
+    ...mapMutations(["clearValues", "swapTickers", "setTickerString"]),
+    ...mapActions(["estimatedAmount", "loadMinimalAmount", "loadInfo"]),
     createTickerString() {
       if (this.leftOptions.ticker !== this.rightOptions.ticker) {
         this.tickerString =
@@ -33,30 +31,26 @@ export default {
       }
     },
     submitHandler() {
-      if (this.$store.state.value < this.$store.state.min) {
-        alert(
-          `Слишком маленькая сумма для обмена! Минимум: ${this.$store.state.min}`
-        );
-        this.$store.state.value = null;
-        this.$store.state.estimated = 0;
+      if (this.value < this.min) {
+        alert(`Слишком маленькая сумма для обмена! Минимум: ${this.min}`);
+        this.clearValues();
         return;
       }
-      this.$store.dispatch("estimatedAmount");
+      this.estimatedAmount();
     },
-    async swapTickers() {
-      await this.$store.commit("swapTickers");
-      this.$store.state.value = null;
-      this.$store.state.estimated = null;
-      this.$store.commit("setTickerString");
-      this.$store.dispatch("loadMinimalAmount", this.$store.state.tickerString);
+    async swap() {
+      await this.swapTickers();
+      this.clearValues();
+      this.setTickerString();
+      this.loadMinimalAmount(this.tickerString);
     },
   },
   async mounted() {
-    await this.$store.dispatch("loadInfo");
-    await this.$store.dispatch(
-      "loadMinimalAmount",
-      this.$store.state.tickerString
-    );
+    await this.loadInfo();
+    await this.loadMinimalAmount(this.tickerString);
+  },
+  computed: {
+    ...mapState(["info", "min", "value", "estimated", "tickerString"]),
   },
 };
 </script>

@@ -34,6 +34,7 @@ input {
   outline: none;
   text-indent: 14px;
   font-size: 16px;
+  color: #000;
 }
 button {
   background: #11b3fe;

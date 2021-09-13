@@ -2,7 +2,7 @@
   <div class="input-box">
     <input
       type="number"
-      :placeholder="isLeft === true ? $store.state.min : null"
+      :placeholder="isLeft === true ? min : null"
       :disabled="isLeft ? false : true"
       @input="updateValue"
       :value="getValue"
@@ -35,6 +35,7 @@
   </div>
 </template>
 <script>
+import { mapState, mapActions, mapMutations } from "vuex";
 export default {
   props: ["isLeft"],
   data() {
@@ -46,20 +47,27 @@ export default {
     };
   },
   methods: {
+    ...mapActions(["loadMinimalAmount"]),
+    ...mapMutations([
+      "setTicker",
+      "setTickerString",
+      "newValue",
+      "clearValues",
+    ]),
     closeSearch() {
       this.showList = false;
       this.searchValue = "";
     },
     findImage() {
-      const index = this.$store.state.info.findIndex(
+      const index = this.info.findIndex(
         (item) => item.ticker === this.getCurrentTicker
       );
-      this.imageSrc = this.$store.state.info[index].image;
+      this.imageSrc = this.info[index].image;
     },
     changeTicker(newTicker) {
       if (
-        (this.isLeft && this.$store.state.rightTicker === newTicker) ||
-        (!this.isLeft && this.$store.state.leftTicker === newTicker)
+        (this.isLeft && this.rightTicker === newTicker) ||
+        (!this.isLeft && this.leftTicker === newTicker)
       ) {
         alert("Одинаковые тикеры недопустимы!");
         this.showList = false;
@@ -67,43 +75,52 @@ export default {
       }
       this.currentTicker = newTicker;
       this.showList = false;
-      this.$store.commit("setTicker", {
+      this.setTicker({
         newTicker: newTicker,
         isLeft: this.isLeft,
       });
-      this.$store.commit("setTickerString");
-      this.$store.dispatch("loadMinimalAmount", this.$store.state.tickerString);
-      this.$store.state.value = null;
-      this.$store.state.estimated = null;
+      this.setTickerString();
+      this.loadMinimalAmount(this.tickerString);
+      this.clearValues();
       this.searchValue = "";
     },
     updateValue(e) {
-      this.$store.commit("updateValue", e.target.value);
+      this.newValue(e.target.value);
     },
   },
   async mounted() {
     this.findImage();
   },
   computed: {
+    ...mapState([
+      "info",
+      "rightTicker",
+      "leftTicker",
+      "value",
+      "estimated",
+      "tickerString",
+      "min",
+    ]),
     getCurrentTicker() {
       if (this.isLeft) {
-        return this.$store.state.leftTicker;
+        return this.leftTicker;
       } else {
-        return this.$store.state.rightTicker;
+        return this.rightTicker;
       }
     },
     getValue() {
       if (this.isLeft) {
-        return this.$store.state.value;
+        return this.value;
       } else {
-        return this.$store.state.estimated;
+        return this.estimated;
       }
     },
     filterInfo() {
-      return this.$store.state.info.filter(
+      return this.info.filter(
         (item) =>
           item.ticker.includes(this.searchValue) ||
-          item.name.includes(this.searchValue)
+          item.name.toLowerCase().includes(this.searchValue) ||
+          item.ticker.toUpperCase().includes(this.searchValue)
       );
     },
   },
@@ -133,18 +150,15 @@ input {
   position: relative;
   text-indent: 14px;
   outline: none;
-  appearance: textfield;
+  color: #000;
 }
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-}
+
 ul {
   position: absolute;
 }
 .current {
   position: absolute;
-  width: 150px;
+  width: 200px;
   height: 50px;
   right: 0;
   border-left: 1px solid #e3ebef;

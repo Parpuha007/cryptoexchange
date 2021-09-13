@@ -72,8 +72,12 @@ export default createStore({
     setTickerString(state) {
       state.tickerString = state.leftTicker + '_' + state.rightTicker
     },
-    updateValue(state, value) {
+    newValue(state, value) {
       state.value = value
+    },
+    clearValues(state) {
+      state.value = null
+      state.estimated = null
     },
     swapTickers(state) {
       [state.rightTicker, state.leftTicker] = [state.leftTicker, state.rightTicker]
