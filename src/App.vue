@@ -24,12 +24,6 @@ export default {
   methods: {
     ...mapMutations(["clearValues", "swapTickers", "setTickerString"]),
     ...mapActions(["estimatedAmount", "loadMinimalAmount", "loadInfo"]),
-    createTickerString() {
-      if (this.leftOptions.ticker !== this.rightOptions.ticker) {
-        this.tickerString =
-          this.leftOptions.ticker + "_" + this.rightOptions.ticker;
-      }
-    },
     submitHandler() {
       if (this.value < this.min) {
         alert(`Слишком маленькая сумма для обмена! Минимум: ${this.min}`);
